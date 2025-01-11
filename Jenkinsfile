@@ -52,6 +52,9 @@ pipeline {
                            script {
                         docker.image(DOCKER_CLI).inside('--entrypoint=""') {
                             sh '''
+                            # Install curl and bash
+                            apt-get update && apt-get install -y curl bash
+                    
                             # Install IBM Cloud CLI
                             curl -sL https://ibm.biz/idt-installer | bash
                     
