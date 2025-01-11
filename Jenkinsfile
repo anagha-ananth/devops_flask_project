@@ -50,20 +50,15 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'docker-registry-credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
                            script {
-                        docker.image(DOCKER_CLI).inside('--entrypoint=""') {
-                            sh '''
-                            # Install curl and bash
-                            apt-get update && apt-get install -y curl bash
-                    
-                            # Install IBM Cloud CLI
-                            curl -sL https://ibm.biz/idt-installer | bash
-                    
-                            # Log in to IBM Cloud Container Registry using IBM Cloud CLI
-                            echo "$DOCKER_PASSWORD" | ibmcloud cr login -u $DOCKER_USERNAME --password-stdin
-                            
-                            # Push the Docker image
-                            docker --config $DOCKER_CONFIG push $REGISTRY_URL/$DOCKER_IMAGE
-                            '''
+                                            docker.image('ibmcloud/cli').inside('--entrypoint=""') {
+                                            sh '''
+                                            # Log in to IBM Cloud Container Registry
+                                            echo "$DOCKER_PASSWORD" | ibmcloud cr login -u $DOCKER_USERNAME --password-stdin
+                        
+                                            # Push the Docker image
+                                            docker --config $DOCKER_CONFIG push $REGISTRY_URL/$DOCKER_IMAGE
+                                            '''
+                            }
                         }    
                     }
                 }
