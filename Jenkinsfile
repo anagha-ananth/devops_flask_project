@@ -52,6 +52,9 @@ pipeline {
                            script {
                         docker.image(DOCKER_CLI).inside('--entrypoint=""') {
                             sh '''
+                            # Install IBM Cloud CLI
+                            curl -sL https://ibm.biz/idt-installer | bash
+                    
                             # Log in to IBM Cloud Container Registry using IBM Cloud CLI
                             echo "$DOCKER_PASSWORD" | ibmcloud cr login -u $DOCKER_USERNAME --password-stdin
                             
