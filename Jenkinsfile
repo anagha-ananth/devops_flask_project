@@ -46,23 +46,28 @@ pipeline {
                 }
             }
         }
-                   stage('Push Docker Image') {
-                steps {
-                    withCredentials([usernamePassword(credentialsId: 'docker-registry-credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                        script {
-                            docker.image('ibmcloud/cli').inside('--entrypoint=""') {
-                                sh '''
-                                # Log in to IBM Cloud Container Registry
-                                echo "$DOCKER_PASSWORD" | ibmcloud cr login -u $DOCKER_USERNAME --password-stdin
-            
-                                # Push the Docker image
-                                docker --config $DOCKER_CONFIG push $REGISTRY_URL/$DOCKER_IMAGE
-                                '''
-                            }
-                        }
-                    }
+                 stage('Push Docker Image') {
+    steps {
+        withCredentials([usernamePassword(credentialsId: 'docker-registry-credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD'),
+                         string(credentialsId: 'ibm-cloud-api-key', variable: 'IBMCLOUD_API_KEY')]) {
+            script {
+                // Use IBM Cloud CLI to log in using the API key
+                docker.image('ibmcloud/cli').inside('--entrypoint=""') {
+                    sh '''
+                    # Log in to IBM Cloud with the API key
+                    echo "$IBMCLOUD_API_KEY" | ibmcloud login --apikey "$IBMCLOUD_API_KEY"
+                    
+                    # Log in to IBM Cloud Container Registry
+                    echo "$DOCKER_PASSWORD" | ibmcloud cr login -u $DOCKER_USERNAME --password-stdin
+                    
+                    # Push the Docker image to IBM Cloud Registry
+                    docker --config $DOCKER_CONFIG push $REGISTRY_URL/$DOCKER_IMAGE
+                    '''
                 }
             }
+        }
+    }
+}
         stage('Deploy to Kubernetes') {
             steps {
                 script {
