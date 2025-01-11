@@ -49,16 +49,16 @@ pipeline {
         stage('Push Docker Image') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'docker-registry-credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                    script {
+                           script {
                         docker.image(DOCKER_CLI).inside('--entrypoint=""') {
                             sh '''
-                            # Log in to the Docker registry
-                            echo "$DOCKER_PASSWORD" | docker --config $DOCKER_CONFIG login $REGISTRY_URL -u $DOCKER_USERNAME --password-stdin
+                            # Log in to IBM Cloud Container Registry using IBM Cloud CLI
+                            echo "$DOCKER_PASSWORD" | ibmcloud cr login -u $DOCKER_USERNAME --password-stdin
                             
                             # Push the Docker image
                             docker --config $DOCKER_CONFIG push $REGISTRY_URL/$DOCKER_IMAGE
                             '''
-                        }
+                        }    
                     }
                 }
             }
