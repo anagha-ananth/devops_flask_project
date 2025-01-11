@@ -46,24 +46,23 @@ pipeline {
                 }
             }
         }
-        stage('Push Docker Image') {
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'docker-registry-credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                           script {
-                                            docker.image('ibmcloud/cli').inside('--entrypoint=""') {
-                                            sh '''
-                                            # Log in to IBM Cloud Container Registry
-                                            echo "$DOCKER_PASSWORD" | ibmcloud cr login -u $DOCKER_USERNAME --password-stdin
-                        
-                                            # Push the Docker image
-                                            docker --config $DOCKER_CONFIG push $REGISTRY_URL/$DOCKER_IMAGE
-                                            '''
+                   stage('Push Docker Image') {
+                steps {
+                    withCredentials([usernamePassword(credentialsId: 'docker-registry-creds', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                        script {
+                            docker.image('ibmcloud/cli').inside('--entrypoint=""') {
+                                sh '''
+                                # Log in to IBM Cloud Container Registry
+                                echo "$DOCKER_PASSWORD" | ibmcloud cr login -u $DOCKER_USERNAME --password-stdin
+            
+                                # Push the Docker image
+                                docker --config $DOCKER_CONFIG push $REGISTRY_URL/$DOCKER_IMAGE
+                                '''
                             }
-                        }    
+                        }
                     }
                 }
             }
-        }
         stage('Deploy to Kubernetes') {
             steps {
                 script {
