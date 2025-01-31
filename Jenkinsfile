@@ -59,8 +59,8 @@ pipeline {
                     then
                         echo "IBM Cloud CLI not found. Installing..."
                         
-                        # Download IBM Cloud CLI installer (updated URL)
-                        curl -fsSL https://github.com/IBM-Cloud/ibm-cloud-cli/releases/download/v1.1.0/ibmcloud-cli_1.1.0_linux_x86_64.tar.gz -o ibmcloud-cli.tar.gz
+                        # Download IBM Cloud CLI installer from the correct URL
+                        curl -fsSL https://clis.cloud.ibm.com/download/bluemix-cli/latest/linux64 -o ibmcloud-cli.tar.gz
 
                         # Extract the downloaded file
                         mkdir -p $IBMCLOUD_CLI_DIR
