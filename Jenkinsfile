@@ -33,8 +33,7 @@ pipeline {
                 }
             }
         }
-
-       stage('Install IBM Cloud CLI') {
+stage('Install IBM Cloud CLI') {
     steps {
         script {
             echo 'Checking if IBM Cloud CLI is installed...'
@@ -48,7 +47,9 @@ pipeline {
                 
                 // Install IBM Cloud CLI using the official install script
                 sh """
-                    curl -fsSL https://clis.cloud.ibm.com/install/linux | sh
+                    curl -fsSL https://clis.cloud.ibm.com/install/linux | bash
+                    # Verify the installation by checking its version
+                    ibmcloud --version
                 """
             } else {
                 echo 'IBM Cloud CLI is already installed.'
@@ -56,6 +57,7 @@ pipeline {
         }
     }
 }
+
         stage('Login to IBM Cloud') {
             steps {
                 script {
