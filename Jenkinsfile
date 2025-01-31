@@ -48,7 +48,7 @@ pipeline {
                 
                 // Install IBM Cloud CLI using the official install script
                 sh """
-                    curl -fsSL https://clis.cloud.ibm.com/install/linux | bash
+                    curl -fsSL https://clis.cloud.ibm.com/install/linux | sh
                 """
             } else {
                 echo 'IBM Cloud CLI is already installed.'
