@@ -1,18 +1,27 @@
 pipeline {
     agent any
+
     environment {
+        // Set the location for IBM Cloud CLI
+        IBMCLOUD_CLI_DIR = "/var/jenkins_home/ibmcloud-cli"
+        // Make sure IBM Cloud CLI is included in PATH
+        PATH = "${IBMCLOUD_CLI_DIR}/bin:/opt/java/openjdk/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+        // IBM Cloud API Key stored in Jenkins credentials
+        IBMCLOUD_API_KEY = credentials('ibm-cloud-api-key') // Ensure to store API key securely in Jenkins credentials
         DOCKER_IMAGE = 'flask-app'
         REGISTRY_URL = 'icr.io/ibmproject/flask-form-app'
         CLUSTER_NAME = 'minikube'
         DOCKER_CLI = 'docker:latest'
         DOCKER_CONFIG = '/var/jenkins_home/workspace/.docker'
     }
+
     stages {
         stage('Checkout') {
             steps {
                 git branch: 'main', url: 'https://github.com/anagha-ananth/devops_flask_project.git'
             }
         }
+
         stage('Prepare Workspace') {
             steps {
                 script {
@@ -24,6 +33,45 @@ pipeline {
                 }
             }
         }
+
+        stage('Install IBM Cloud CLI') {
+            steps {
+                script {
+                    echo 'Checking if IBM Cloud CLI is installed...'
+                    
+                    // Check if IBM Cloud CLI is available
+                    def ibmCloudInstalled = sh(script: 'command -v ibmcloud', returnStatus: true)
+                    
+                    // If not installed, download and install it
+                    if (ibmCloudInstalled != 0) {
+                        echo 'IBM Cloud CLI not found. Installing...'
+                        
+                        // Download and extract IBM Cloud CLI
+                        sh """
+                            curl -fsSL https://clis.cloud.ibm.com/download/bluemix-cli/latest/linux64 -o ibmcloud-cli.tar.gz
+                            mkdir -p ${IBMCLOUD_CLI_DIR}
+                            tar -xvzf ibmcloud-cli.tar.gz -C ${IBMCLOUD_CLI_DIR} --strip-components=1
+                        """
+                    } else {
+                        echo 'IBM Cloud CLI is already installed.'
+                    }
+                }
+            }
+        }
+
+        stage('Login to IBM Cloud') {
+            steps {
+                script {
+                    echo 'Logging into IBM Cloud...'
+                    
+                    // Login to IBM Cloud CLI using the API key
+                    sh """
+                        ibmcloud login --apikey ${IBMCLOUD_API_KEY} -g Default
+                    """
+                }
+            }
+        }
+
         stage('Lint Dockerfile') {
             steps {
                 script {
@@ -34,6 +82,7 @@ pipeline {
                 }
             }
         }
+
         stage('Build Docker Image') {
             steps {
                 script {
@@ -46,45 +95,7 @@ pipeline {
                 }
             }
         }
-        stage('Install IBM Cloud CLI') {
-            steps {
-                script {
-                    sh '''
-                    # Define IBM Cloud CLI directory
-                    export IBMCLOUD_CLI_DIR=/var/jenkins_home/ibmcloud-cli
-                    export PATH=$IBMCLOUD_CLI_DIR/bin:$PATH
 
-                    # Check if IBM Cloud CLI is already installed
-                    if ! command -v ibmcloud &> /dev/null
-                    then
-                        echo "IBM Cloud CLI not found. Installing..."
-                        
-                        # Download IBM Cloud CLI installer from the correct URL
-                        curl -fsSL https://clis.cloud.ibm.com/download/bluemix-cli/latest/linux64 -o ibmcloud-cli.tar.gz
-
-                        # Extract the downloaded file and ensure successful extraction
-                        mkdir -p $IBMCLOUD_CLI_DIR
-                        tar -xvzf ibmcloud-cli.tar.gz -C $IBMCLOUD_CLI_DIR --strip-components=1
-
-                        # Check if extraction was successful
-                        if [ $? -eq 0 ]; then
-                            echo "IBM Cloud CLI extracted successfully."
-                            chmod +x $IBMCLOUD_CLI_DIR/bin/ibmcloud
-                            export PATH=$IBMCLOUD_CLI_DIR/bin:$PATH
-                        else
-                            echo "Error: Failed to extract IBM Cloud CLI."
-                            exit 1
-                        fi
-                    else
-                        echo "IBM Cloud CLI is already installed."
-                    fi
-
-                    # Verify installation
-                    ibmcloud --version
-                    '''
-                }
-            }
-        }
         stage('Push Docker Image') {
             steps {
                 withCredentials([string(credentialsId: 'ibm-cloud-api-key', variable: 'IBMCLOUD_API_KEY')]) {
@@ -103,24 +114,21 @@ pipeline {
                 }
             }
         }
-        stage('Deploy to Kubernetes') {
+
+        stage('Deploy to IBM Cloud') {
             steps {
-                script {
-                    sh '''
-                    # Apply Kubernetes configurations
-                    kubectl apply -f deployment.yaml
-                    kubectl apply -f service.yaml
-                    '''
-                }
+                echo 'Deploying application to IBM Cloud...'
+                // Add your deployment commands here
+                // For example: sh 'ibmcloud app push my-app'
             }
         }
     }
+
     post {
-        success {
-            echo 'Pipeline executed successfully!'
-        }
-        failure {
-            echo 'Pipeline failed. Check logs.'
+        always {
+            echo 'Cleaning up...'
+            // Clean up any resources or artifacts
+            sh 'rm -rf ibmcloud-cli.tar.gz'
         }
     }
 }
