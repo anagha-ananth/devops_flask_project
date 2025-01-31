@@ -48,19 +48,34 @@ pipeline {
             withCredentials([string(credentialsId: 'ibm-cloud-api-key', variable: 'IBMCLOUD_API_KEY')]) {
                     script {
                         sh '''
-                        # Install IBM Cloud CLI manually if not installed
+                        # Define installation directory in user space
+                        export IBMCLOUD_CLI_DIR=$HOME/ibmcloud-cli
+                        export PATH=$IBMCLOUD_CLI_DIR:$PATH
+        
+                        # Check if IBM Cloud CLI is already installed
                         if ! command -v ibmcloud &> /dev/null
                         then
                             echo "IBM Cloud CLI not found. Installing..."
-                            curl -fsSL https://clis.cloud.ibm.com/install/linux | sh
+        
+                            # Download IBM Cloud CLI
+                            curl -fsSL https://clis.cloud.ibm.com/install/linux | tar -xz -C $HOME
+        
+                            # Move executable to user directory
+                            mv $HOME/Bluemix_CLI/bin/ibmcloud $IBMCLOUD_CLI_DIR
+        
+                            # Ensure it's executable
+                            chmod +x $IBMCLOUD_CLI_DIR/ibmcloud
                         else
                             echo "IBM Cloud CLI is already installed."
                         fi
                         
+                        # Verify installation
+                        ibmcloud --version
+                        
                         # Log in to IBM Cloud with API key
                         ibmcloud login --apikey "$IBMCLOUD_API_KEY" -g Default
                         
-                        # Ensure IBM Cloud Container Registry login
+                        # Log in to IBM Cloud Container Registry
                         ibmcloud cr login
                         
                         # Push the Docker image to IBM Cloud Registry
