@@ -48,7 +48,7 @@ pipeline {
             withCredentials([string(credentialsId: 'ibm-cloud-api-key', variable: 'IBMCLOUD_API_KEY')]) {
                     script {
                         sh '''
-                        # Define installation directory in user space
+                        # Define IBM Cloud CLI directory
                         export IBMCLOUD_CLI_DIR=/var/jenkins_home/ibmcloud-cli
                         export PATH=$IBMCLOUD_CLI_DIR:$PATH
         
@@ -57,15 +57,18 @@ pipeline {
                         then
                             echo "IBM Cloud CLI not found. Installing..."
         
-                            # Download and install IBM Cloud CLI correctly
-                            curl -fsSL https://clis.cloud.ibm.com/install/linux | sh
-                            
-                            # Move IBM Cloud CLI to user directory if necessary
-                            if [ -f /usr/local/bin/ibmcloud ]; then
-                                mkdir -p $IBMCLOUD_CLI_DIR
-                                cp /usr/local/bin/ibmcloud $IBMCLOUD_CLI_DIR
-                                chmod +x $IBMCLOUD_CLI_DIR/ibmcloud
-                            fi
+                            # Download IBM Cloud CLI manually
+                            curl -fsSL https://clis.cloud.ibm.com/download/bluemix-cli/latest/linux64 | tar -xz -C /var/jenkins_home/
+        
+                            # Move IBM Cloud CLI to user directory
+                            mkdir -p $IBMCLOUD_CLI_DIR/bin
+                            mv /var/jenkins_home/Bluemix_CLI/bin/ibmcloud $IBMCLOUD_CLI_DIR/bin/
+        
+                            # Ensure it is executable
+                            chmod +x $IBMCLOUD_CLI_DIR/bin/ibmcloud
+        
+                            # Add IBM Cloud CLI to PATH
+                            export PATH=$IBMCLOUD_CLI_DIR/bin:$PATH
                         else
                             echo "IBM Cloud CLI is already installed."
                         fi
