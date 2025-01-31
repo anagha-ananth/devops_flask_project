@@ -44,19 +44,28 @@ pipeline {
             }
         }
         stage('Push Docker Image') {
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'docker-registry-credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD'),
-                                 string(credentialsId: 'ibm-cloud-api-key', variable: 'IBMCLOUD_API_KEY')]) {
+        steps {
+            withCredentials([string(credentialsId: 'ibm-cloud-api-key', variable: 'IBMCLOUD_API_KEY')]) {
                     script {
-                        docker.image('ibmcom/ibmcloud-cli:latest').inside('--entrypoint=""') {
-                            sh '''
-                            # Install IBM Cloud CLI manually if not already installed
+                        sh '''
+                        # Install IBM Cloud CLI manually if not installed
+                        if ! command -v ibmcloud &> /dev/null
+                        then
+                            echo "IBM Cloud CLI not found. Installing..."
                             curl -fsSL https://clis.cloud.ibm.com/install/linux | sh
-                            ibmcloud login --apikey "$IBMCLOUD_API_KEY" -g Default
-                            ibmcloud cr login
-                            docker --config $DOCKER_CONFIG push $REGISTRY_URL/$DOCKER_IMAGE
-                            '''
-                        }
+                        else
+                            echo "IBM Cloud CLI is already installed."
+                        fi
+                        
+                        # Log in to IBM Cloud with API key
+                        ibmcloud login --apikey "$IBMCLOUD_API_KEY" -g Default
+                        
+                        # Ensure IBM Cloud Container Registry login
+                        ibmcloud cr login
+                        
+                        # Push the Docker image to IBM Cloud Registry
+                        docker push $REGISTRY_URL/$DOCKER_IMAGE
+                        '''
                     }
                 }
             }
