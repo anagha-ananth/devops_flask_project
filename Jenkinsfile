@@ -62,9 +62,9 @@ pipeline {
                         # Download IBM Cloud CLI installer from the correct URL
                         curl -fsSL https://clis.cloud.ibm.com/download/bluemix-cli/latest/linux64 -o ibmcloud-cli.tar.gz
 
-                        # Extract the downloaded file
+                        # Extract the downloaded file and ensure successful extraction
                         mkdir -p $IBMCLOUD_CLI_DIR
-                        tar -xzf ibmcloud-cli.tar.gz -C $IBMCLOUD_CLI_DIR --strip-components=1
+                        tar -xvzf ibmcloud-cli.tar.gz -C $IBMCLOUD_CLI_DIR --strip-components=1
 
                         # Check if extraction was successful
                         if [ $? -eq 0 ]; then
