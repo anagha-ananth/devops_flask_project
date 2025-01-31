@@ -50,6 +50,8 @@ pipeline {
                     script {
                         docker.image('ibmcom/ibmcloud-cli:latest').inside('--entrypoint=""') {
                             sh '''
+                            # Install IBM Cloud CLI manually if not already installed
+                            curl -fsSL https://clis.cloud.ibm.com/install/linux | sh
                             ibmcloud login --apikey "$IBMCLOUD_API_KEY" -g Default
                             ibmcloud cr login
                             docker --config $DOCKER_CONFIG push $REGISTRY_URL/$DOCKER_IMAGE
