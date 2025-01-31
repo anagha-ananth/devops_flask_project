@@ -45,10 +45,14 @@ stage('Install IBM Cloud CLI') {
             if (ibmCloudInstalled != 0) {
                 echo 'IBM Cloud CLI not found. Installing...'
                 
-                // Install IBM Cloud CLI using the official install script
+                // Download IBM Cloud CLI installer
                 sh """
-                    curl -fsSL https://clis.cloud.ibm.com/install/linux | bash
-                    # Verify the installation by checking its version
+                    curl -fsSL https://clis.cloud.ibm.com/install/linux | bash -s -- --prefix=/var/jenkins_home/ibmcloud-cli
+                """
+                
+                // Ensure the correct PATH is set
+                sh """
+                    export PATH=\$PATH:/var/jenkins_home/ibmcloud-cli/bin
                     ibmcloud --version
                 """
             } else {
@@ -57,7 +61,6 @@ stage('Install IBM Cloud CLI') {
         }
     }
 }
-
         stage('Login to IBM Cloud') {
             steps {
                 script {
