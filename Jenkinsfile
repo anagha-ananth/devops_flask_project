@@ -60,15 +60,17 @@ pipeline {
                         echo "IBM Cloud CLI not found. Installing..."
                         curl -fsSL https://clis.cloud.ibm.com/download/bluemix-cli/latest/linux64 -o ibmcloud-cli.tar.gz
                         
-                        # Check if the file was downloaded correctly
-                        if file ibmcloud-cli.tar.gz | grep -q 'gzip compressed data'; then
-                            echo "File downloaded successfully, extracting..."
-                            mkdir -p $IBMCLOUD_CLI_DIR
-                            tar -xzf ibmcloud-cli.tar.gz -C $IBMCLOUD_CLI_DIR --strip-components=1
+                        # Try extracting the downloaded tar file
+                        mkdir -p $IBMCLOUD_CLI_DIR
+                        tar -xzf ibmcloud-cli.tar.gz -C $IBMCLOUD_CLI_DIR --strip-components=1
+
+                        # Check if extraction was successful
+                        if [ $? -eq 0 ]; then
+                            echo "IBM Cloud CLI extracted successfully."
                             chmod +x $IBMCLOUD_CLI_DIR/bin/ibmcloud
                             export PATH=$IBMCLOUD_CLI_DIR/bin:$PATH
                         else
-                            echo "Error: Downloaded file is not in gzip format."
+                            echo "Error: Failed to extract IBM Cloud CLI."
                             exit 1
                         fi
                     else
