@@ -34,31 +34,28 @@ pipeline {
             }
         }
 
-        stage('Install IBM Cloud CLI') {
-            steps {
-                script {
-                    echo 'Checking if IBM Cloud CLI is installed...'
-                    
-                    // Check if IBM Cloud CLI is available
-                    def ibmCloudInstalled = sh(script: 'command -v ibmcloud', returnStatus: true)
-                    
-                    // If not installed, download and install it
-                    if (ibmCloudInstalled != 0) {
-                        echo 'IBM Cloud CLI not found. Installing...'
-                        
-                        // Download and extract IBM Cloud CLI
-                        sh """
-                            curl -fsSL https://clis.cloud.ibm.com/download/bluemix-cli/latest/linux64 -o ibmcloud-cli.tar.gz
-                            mkdir -p ${IBMCLOUD_CLI_DIR}
-                            tar -xvzf ibmcloud-cli.tar.gz -C ${IBMCLOUD_CLI_DIR} --strip-components=1
-                        """
-                    } else {
-                        echo 'IBM Cloud CLI is already installed.'
-                    }
-                }
+       stage('Install IBM Cloud CLI') {
+    steps {
+        script {
+            echo 'Checking if IBM Cloud CLI is installed...'
+            
+            // Check if IBM Cloud CLI is available
+            def ibmCloudInstalled = sh(script: 'command -v ibmcloud', returnStatus: true)
+            
+            // If not installed, download and install it
+            if (ibmCloudInstalled != 0) {
+                echo 'IBM Cloud CLI not found. Installing...'
+                
+                // Install IBM Cloud CLI using the official install script
+                sh """
+                    curl -fsSL https://clis.cloud.ibm.com/install/linux | bash
+                """
+            } else {
+                echo 'IBM Cloud CLI is already installed.'
             }
         }
-
+    }
+}
         stage('Login to IBM Cloud') {
             steps {
                 script {
