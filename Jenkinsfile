@@ -58,11 +58,13 @@ pipeline {
                     if ! command -v ibmcloud &> /dev/null
                     then
                         echo "IBM Cloud CLI not found. Installing..."
-                        curl -fsSL https://clis.cloud.ibm.com/download/bluemix-cli/latest/linux64 -o ibmcloud-cli.tar
+                        
+                        # Download IBM Cloud CLI installer (updated URL)
+                        curl -fsSL https://github.com/IBM-Cloud/ibm-cloud-cli/releases/download/v1.1.0/ibmcloud-cli_1.1.0_linux_x86_64.tar.gz -o ibmcloud-cli.tar.gz
 
                         # Extract the downloaded file
                         mkdir -p $IBMCLOUD_CLI_DIR
-                        tar -xf ibmcloud-cli.tar -C $IBMCLOUD_CLI_DIR --strip-components=1
+                        tar -xzf ibmcloud-cli.tar.gz -C $IBMCLOUD_CLI_DIR --strip-components=1
 
                         # Check if extraction was successful
                         if [ $? -eq 0 ]; then
