@@ -37,25 +37,17 @@ stage('Install IBM Cloud CLI') {
     steps {
         script {
             echo 'Checking if IBM Cloud CLI is installed...'
-            
+
             // Check if IBM Cloud CLI is available
             def ibmCloudInstalled = sh(script: 'command -v ibmcloud', returnStatus: true)
-            
-            // If not installed, download and install it manually
+
+            // If not installed, install it using the installation script
             if (ibmCloudInstalled != 0) {
                 echo 'IBM Cloud CLI not found. Installing...'
                 
-                // Manually download the IBM Cloud CLI tar.gz file
+                // Use the installation script for IBM Cloud CLI
                 sh """
-                    curl -fsSL https://clis.cloud.ibm.com/download/bluemix-cli/latest/linux64 -o /var/jenkins_home/ibmcloud-cli.tar.gz
-                    mkdir -p /var/jenkins_home/ibmcloud-cli
-                    tar -xvzf /var/jenkins_home/ibmcloud-cli.tar.gz -C /var/jenkins_home/ibmcloud-cli --strip-components=1
-                """
-                
-                // Add IBM Cloud CLI to PATH
-                sh """
-                    export PATH=\$PATH:/var/jenkins_home/ibmcloud-cli/bin
-                    ibmcloud --version
+                    curl -fsSL https://clis.cloud.ibm.com/install/linux | bash
                 """
             } else {
                 echo 'IBM Cloud CLI is already installed.'
@@ -63,7 +55,6 @@ stage('Install IBM Cloud CLI') {
         }
     }
 }
-
         stage('Login to IBM Cloud') {
             steps {
                 script {
