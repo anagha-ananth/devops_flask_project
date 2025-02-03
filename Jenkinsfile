@@ -49,14 +49,21 @@ pipeline {
             script {
                 sh '''
                 export PATH=$HOME/ibmcloud-cli/Bluemix_CLI/bin:$PATH
-                ibmcloud login --apikey "$IBMCLOUD_API_KEY"
+                
+                # Log in to IBM Cloud without user input
+                ibmcloud login --apikey "$IBMCLOUD_API_KEY" -r in-che
+                
+                # Log in to IBM Cloud Container Registry
                 ibmcloud cr login
+                
+                # Push the Docker image to IBM Cloud Registry
                 docker push $REGISTRY_URL/$DOCKER_IMAGE
                 '''
             }
         }
     }
 }
+
         stage('Deploy to Kubernetes') {
             steps {
                 script {
