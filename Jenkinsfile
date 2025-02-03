@@ -49,6 +49,9 @@ pipeline {
             script {
                 sh '''
                 export PATH=$HOME/ibmcloud-cli/Bluemix_CLI/bin:$PATH
+
+                # Install IBM Cloud Container Registry plugin if missing
+                ibmcloud plugin install container-registry || echo "Plugin already installed"
                 
                 # Log in to IBM Cloud without user input
                 ibmcloud login --apikey "$IBMCLOUD_API_KEY" -r in-che
