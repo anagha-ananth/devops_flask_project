@@ -43,32 +43,35 @@ pipeline {
                 }
             }
         }
-       stage('Push Docker Image') {
-    steps {
-        withCredentials([string(credentialsId: 'ibm-cloud-api-key', variable: 'IBMCLOUD_API_KEY')]) {
-            script {
-                sh '''
-                export PATH=$HOME/ibmcloud-cli/Bluemix_CLI/bin:$PATH
-                
-                # Log in to IBM Cloud
-                ibmcloud login --apikey "$IBMCLOUD_API_KEY" -r in-che || exit 1
+        stage('Push Docker Image') {
+            steps {
+                withCredentials([string(credentialsId: 'ibm-cloud-api-key', variable: 'IBMCLOUD_API_KEY')]) {
+                    script {
+                        sh '''
+                        # Install IBM Cloud CLI if it's not already installed
+                        curl -sL https://ibm.biz/idt-installer | bash
 
-                # Ensure IBM Cloud Container Registry plugin is installed
-                ibmcloud plugin install container-registry || echo "Plugin already installed"
+                        # Log in to IBM Cloud
+                        ibmcloud login --apikey "$IBMCLOUD_API_KEY" -r in-che || exit 1
 
-                # Log in to IBM Cloud Container Registry
-                ibmcloud cr login || exit 1
+                        # Install IBM Cloud Container Registry plugin if not installed
+                        ibmcloud plugin install container-registry || echo "Plugin already installed"
 
-                # Verify authentication before pushing
-                ibmcloud cr info
+                        # Log in to IBM Cloud Container Registry
+                        ibmcloud cr login || exit 1
 
-                # Push the Docker image to IBM Cloud Registry
-                docker push $REGISTRY_URL/$DOCKER_IMAGE
-                '''
+                        # Verify authentication before pushing
+                        ibmcloud cr info
+
+                        # Push the Docker image to IBM Cloud Registry
+                        docker withRegistry('https://icr.io', 'ibmcloud-icr') {
+                            docker.push("$REGISTRY_URL/$DOCKER_IMAGE")
+                        }
+                        '''
+                    }
+                }
             }
         }
-    }
-}
         stage('Deploy to Kubernetes') {
             steps {
                 script {
