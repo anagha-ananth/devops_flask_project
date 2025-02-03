@@ -64,9 +64,7 @@ pipeline {
                         ibmcloud cr info
 
                         # Push the Docker image to IBM Cloud Registry
-                        docker withRegistry('https://icr.io', 'ibmcloud-icr') {
-                            docker.push("$REGISTRY_URL/$DOCKER_IMAGE")
-                        }
+                        docker push $REGISTRY_URL/$DOCKER_IMAGE
                         '''
                     }
                 }
