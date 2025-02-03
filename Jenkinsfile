@@ -49,16 +49,19 @@ pipeline {
             script {
                 sh '''
                 export PATH=$HOME/ibmcloud-cli/Bluemix_CLI/bin:$PATH
+                
+                # Log in to IBM Cloud
+                ibmcloud login --apikey "$IBMCLOUD_API_KEY" -r in-che || exit 1
 
-                # Install IBM Cloud Container Registry plugin if missing
+                # Ensure IBM Cloud Container Registry plugin is installed
                 ibmcloud plugin install container-registry || echo "Plugin already installed"
-                
-                # Log in to IBM Cloud without user input
-                ibmcloud login --apikey "$IBMCLOUD_API_KEY" -r in-che
-                
+
                 # Log in to IBM Cloud Container Registry
-                ibmcloud cr login
-                
+                ibmcloud cr login || exit 1
+
+                # Verify authentication before pushing
+                ibmcloud cr info
+
                 # Push the Docker image to IBM Cloud Registry
                 docker push $REGISTRY_URL/$DOCKER_IMAGE
                 '''
@@ -66,7 +69,6 @@ pipeline {
         }
     }
 }
-
         stage('Deploy to Kubernetes') {
             steps {
                 script {
