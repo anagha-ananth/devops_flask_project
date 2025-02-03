@@ -43,22 +43,20 @@ pipeline {
                 }
             }
         }
-        stage('Push Docker Image') {
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'docker-registry-credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD'),
-                                 string(credentialsId: 'ibm-cloud-api-key', variable: 'IBMCLOUD_API_KEY')]) {
-                    script {
-                        docker.image('icr.io/ibm/ibmcloud-cli:latest').inside('--entrypoint=""') {
-                            sh '''
-                            ibmcloud login --apikey "$IBMCLOUD_API_KEY"
-                            ibmcloud cr login
-                            docker --config $DOCKER_CONFIG push $REGISTRY_URL/$DOCKER_IMAGE
-                            '''
-                        }
-                    }
+       stage('Push Docker Image') {
+        steps {
+            withCredentials([string(credentialsId: 'ibm-cloud-api-key', variable: 'IBMCLOUD_API_KEY')]) {
+                script {
+                    sh '''
+                    ibmcloud login --apikey "$IBMCLOUD_API_KEY"
+                    ibmcloud plugin install container-registry
+                    ibmcloud cr login
+                    docker push $REGISTRY_URL/$DOCKER_IMAGE
+                    '''
                 }
             }
         }
+    }
         stage('Deploy to Kubernetes') {
             steps {
                 script {
