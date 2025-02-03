@@ -44,19 +44,19 @@ pipeline {
             }
         }
        stage('Push Docker Image') {
-        steps {
-            withCredentials([string(credentialsId: 'ibm-cloud-api-key', variable: 'IBMCLOUD_API_KEY')]) {
-                script {
-                    sh '''
-                    ibmcloud login --apikey "$IBMCLOUD_API_KEY"
-                    ibmcloud plugin install container-registry
-                    ibmcloud cr login
-                    docker push $REGISTRY_URL/$DOCKER_IMAGE
-                    '''
-                }
+    steps {
+        withCredentials([string(credentialsId: 'ibm-cloud-api-key', variable: 'IBMCLOUD_API_KEY')]) {
+            script {
+                sh '''
+                export PATH=$HOME/ibmcloud-cli/Bluemix_CLI/bin:$PATH
+                ibmcloud login --apikey "$IBMCLOUD_API_KEY"
+                ibmcloud cr login
+                docker push $REGISTRY_URL/$DOCKER_IMAGE
+                '''
             }
         }
     }
+}
         stage('Deploy to Kubernetes') {
             steps {
                 script {
