@@ -6,6 +6,7 @@ pipeline {
         CLUSTER_NAME = 'minikube'
         DOCKER_CLI = 'docker:latest'
         DOCKER_CONFIG = '/var/jenkins_home/workspace/.docker'
+        KUBECTL_PATH = "${WORKSPACE}/kubectl"
     }
     stages {
         stage('Checkout') {
@@ -70,17 +71,20 @@ pipeline {
                 }
             }
         }
-        stage('Deploy to Kubernetes') {
+        stages {
+        stage('Install kubectl') {
             steps {
-                script {
-                    sh '''
-                    kubectl apply -f deployment.yaml
-                    kubectl apply -f service.yaml
-                    '''
-                }
+                sh '''
+                curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+                chmod +x kubectl
+                '''
             }
         }
-    }
+        stage('Deploy to Kubernetes') {
+            steps {
+                sh '${WORKSPACE}/kubectl apply -f deployment.yaml'
+            }
+        }
     post {
         success {
             echo 'Pipeline executed successfully!'
