@@ -71,16 +71,30 @@ pipeline {
             }
         }
         stage('Deploy to Kubernetes') {
-            steps {
-                script {
-                    sh '''
-                    kubectl apply -f deployment.yaml
-                    kubectl apply -f service.yaml
-                    '''
-                }
-            }
+    steps {
+        script {
+            sh '''
+            # Check if kubectl is installed
+            if ! command -v kubectl &> /dev/null; then
+                echo "kubectl not found, installing..."
+                curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+                chmod +x kubectl
+                sudo mv kubectl /usr/local/bin/
+            fi
+
+            # Verify kubectl installation
+            kubectl version --client
+
+            # Ensure Minikube is the current context
+            kubectl config use-context minikube || exit 1
+
+            # Apply Kubernetes manifests
+            kubectl apply -f deployment.yaml
+            kubectl apply -f service.yaml
+            '''
         }
     }
+}
     post {
         success {
             echo 'Pipeline executed successfully!'
