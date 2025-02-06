@@ -6,7 +6,6 @@ pipeline {
         CLUSTER_NAME = 'minikube'
         DOCKER_CLI = 'docker:latest'
         DOCKER_CONFIG = '/var/jenkins_home/workspace/.docker'
-        KUBECTL_PATH = "${WORKSPACE}/kubectl"
     }
     stages {
         stage('Checkout') {
