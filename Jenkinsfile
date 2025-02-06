@@ -35,11 +35,9 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    docker.image(DOCKER_CLI).inside('--entrypoint=""') {
-                        sh '''
-                        docker --config $DOCKER_CONFIG build -t $REGISTRY_URL/$DOCKER_IMAGE .
-                        '''
-                    }
+                    sh '''
+                    docker build -t $REGISTRY_URL/$DOCKER_IMAGE .
+                    '''
                 }
             }
         }
@@ -71,16 +69,31 @@ pipeline {
             }
         }
         stage('Deploy to Kubernetes') {
-    steps {
-        script {
-            sh '''
-                       # Apply Kubernetes manifests
-            kubectl apply -f deployment.yaml
-            kubectl apply -f service.yaml
-            '''
+            steps {
+                script {
+                    sh '''
+                    # Check if kubectl is installed
+                    if ! command -v kubectl &> /dev/null; then
+                        echo "kubectl not found, installing..."
+                        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+                        chmod +x kubectl
+                        sudo mv kubectl /usr/local/bin/
+                    fi
+
+                    # Verify kubectl installation
+                    kubectl version --client
+
+                    # Ensure Minikube is the current context
+                    kubectl config use-context minikube || exit 1
+
+                    # Apply Kubernetes manifests
+                    kubectl apply -f deployment.yaml
+                    kubectl apply -f service.yaml
+                    '''
+                }
+            }
         }
     }
-}
     post {
         success {
             echo 'Pipeline executed successfully!'
