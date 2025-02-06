@@ -70,20 +70,17 @@ pipeline {
                 }
             }
         }
-        stages {
-        stage('Install kubectl') {
-            steps {
-                sh '''
-                curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-                chmod +x kubectl
-                '''
-            }
-        }
         stage('Deploy to Kubernetes') {
             steps {
-                sh '${WORKSPACE}/kubectl apply -f deployment.yaml'
+                script {
+                    sh '''
+                    kubectl apply -f deployment.yaml
+                    kubectl apply -f service.yaml
+                    '''
+                }
             }
         }
+    }
     post {
         success {
             echo 'Pipeline executed successfully!'
